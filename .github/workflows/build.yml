@@ -16,6 +16,19 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Bundle standalone resource extractor
+        run: |
+          python -m pip install pyinstaller==6.16.0 Pillow==11.3.0 PyYAML==6.0.2
+          python -m PyInstaller --noconfirm --onedir --distpath tools-dist --name zelda3-extractor --add-data "assets:assets" --add-data "other/3x5_font.png:other" --paths assets --hidden-import compile_resources --hidden-import extract_resources --hidden-import PIL.Image --hidden-import yaml tools/extract-assets.py
+      - name: Test standalone extractor without system Python
+        run: tools-dist/zelda3-extractor/zelda3-extractor --help
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extractor-linux-x86_64
+          path: tools-dist/zelda3-extractor/
       - name: Build executable without ROM assets
         run: make -j"$(nproc)" zelda3
       - name: Package
@@ -42,6 +55,17 @@ jobs:
           msystem: MINGW64
           update: true
           install: mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Bundle standalone resource extractor
+        shell: pwsh
+        run: |
+          python -m pip install pyinstaller==6.16.0 Pillow==11.3.0 PyYAML==6.0.2
+          python -m PyInstaller --noconfirm --onedir --distpath tools-dist --name zelda3-extractor --add-data "assets:assets" --add-data "other/3x5_font.png:other" --paths assets --hidden-import compile_resources --hidden-import extract_resources --hidden-import PIL.Image --hidden-import yaml tools/extract-assets.py
+      - name: Test standalone extractor
+        shell: pwsh
+        run: tools-dist/zelda3-extractor/zelda3-extractor.exe --help
       - name: Build and package
         run: |
           mkdir -p dist
@@ -53,6 +77,15 @@ jobs:
           # Include any additional non-system DLL dependencies.
           ldd dist/zelda3.exe | awk '/=> \/mingw64\/bin\// {print $3}' | while read -r dll; do cp "$dll" dist/; done
           printf '%s\n' 'Place your zelda3_assets.dat in this directory before launching zelda3.exe.' > dist/README.txt
+      - name: Package public download
+        shell: pwsh
+        run: |
+          Copy-Item -Recurse tools-dist/zelda3-extractor dist/extractor
+          python tools/package-release.py dist zelda3-windows-x86_64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: zelda3-windows-x86_64.zip
       - uses: actions/upload-artifact@v4
         with:
           name: zelda3-windows-x86_64
@@ -117,3 +150,46 @@ jobs:
             zelda3-x86_64.AppImage
             APPIMAGE-README.txt
           if-no-files-found: error
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: extractor-linux-x86_64
+          path: release-dist/extractor
+      - name: Package public download
+        run: |
+          chmod +x release-dist/extractor/zelda3-extractor
+          cp zelda3-x86_64.AppImage release-dist/zelda3.AppImage
+          chmod +x release-dist/zelda3.AppImage
+          cp zelda3.ini LICENSE.txt APPIMAGE-README.txt release-dist/
+          python3 tools/package-release.py release-dist zelda3-linux-x86_64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: zelda3-linux-x86_64.zip
+
+  release:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    needs: [windows, appimage]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: release
+      - name: Publish downloadable binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD_SHA: ${{ github.sha }}
+        run: |
+          cd release
+          sha256sum *.zip > SHA256SUMS
+          tag="build-${BUILD_SHA}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" *.zip SHA256SUMS --clobber
+          else
+            gh release create "$tag" *.zip SHA256SUMS --target "$BUILD_SHA" --title "Zelda3 ${BUILD_SHA:0:7}" --notes 'Windows and Linux x86_64 binaries with standalone ROM resource extractor. No ROM or Nintendo assets included.' --latest
+          fi
