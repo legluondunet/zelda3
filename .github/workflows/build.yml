@@ -1,0 +1,119 @@
+name: Build Linux, Windows and AppImage
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
+      - name: Build executable without ROM assets
+        run: make -j"$(nproc)" zelda3
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp zelda3 zelda3.ini LICENSE.txt dist/
+          printf '%s\n' 'Place your zelda3_assets.dat in this directory. Run ./zelda3 here. SDL2 must be installed.' > dist/README.txt
+          tar -czf zelda3-linux-x86_64.tar.gz -C dist .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zelda3-linux-x86_64
+          path: zelda3-linux-x86_64.tar.gz
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2
+      - name: Build and package
+        run: |
+          mkdir -p dist
+          gcc -O2 -I. $(sdl2-config --cflags) -DSYSTEM_VOLUME_MIXER_AVAILABLE=0 \
+            src/*.c snes/*.c third_party/gl_core/gl_core_3_1.c \
+            third_party/opus-1.3.1-stripped/opus_decoder_amalgam.c \
+            -o dist/zelda3.exe -static-libgcc $(sdl2-config --libs) -lm
+          cp /mingw64/bin/SDL2.dll zelda3.ini LICENSE.txt dist/
+          # Include any additional non-system DLL dependencies.
+          ldd dist/zelda3.exe | awk '/=> \/mingw64\/bin\// {print $3}' | while read -r dll; do cp "$dll" dist/; done
+          printf '%s\n' 'Place your zelda3_assets.dat in this directory before launching zelda3.exe.' > dist/README.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zelda3-windows-x86_64
+          path: dist/
+          if-no-files-found: error
+
+  appimage:
+    needs: linux
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: zelda3-linux-x86_64
+          path: build
+      - name: Install packaging dependencies
+        run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
+      - name: Create AppImage
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+          ARCH: x86_64
+          OUTPUT: zelda3-x86_64.AppImage
+        run: |
+          mkdir -p build/linux AppDir/usr/bin AppDir/usr/share/zelda3
+          tar -xzf build/zelda3-linux-x86_64.tar.gz -C build/linux
+          install -m755 build/linux/zelda3 AppDir/usr/bin/zelda3
+          cp zelda3.ini LICENSE.txt AppDir/usr/share/zelda3/
+          cat > zelda3.desktop <<'DESKTOP'
+          [Desktop Entry]
+          Type=Application
+          Name=Zelda3
+          Exec=zelda3
+          Icon=zelda3
+          Categories=Game;
+          Terminal=false
+          DESKTOP
+          cat > zelda3.svg <<'ICON'
+          <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><rect width="256" height="256" rx="32" fill="#163b2b"/><path d="M128 32 72 128h112zM72 128 16 224h112zM184 128l-56 96h112z" fill="#f4c542"/></svg>
+          ICON
+          cat > AppRun <<'LAUNCHER'
+          #!/bin/sh
+          set -eu
+          export LD_LIBRARY_PATH="$APPDIR/usr/lib:${LD_LIBRARY_PATH:-}"
+          if [ -n "${APPIMAGE:-}" ]; then
+            cd "$(dirname "$APPIMAGE")"
+          fi
+          if [ ! -f zelda3.ini ]; then
+            cp "$APPDIR/usr/share/zelda3/zelda3.ini" ./zelda3.ini
+          fi
+          exec "$APPDIR/usr/bin/zelda3" "$@"
+          LAUNCHER
+          chmod +x AppRun
+          curl -fL --retry 3 https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage -o linuxdeploy.AppImage
+          chmod +x linuxdeploy.AppImage
+          ./linuxdeploy.AppImage --appdir AppDir --desktop-file zelda3.desktop --icon-file zelda3.svg --custom-apprun AppRun --output appimage
+          test -s "$OUTPUT"
+          printf '%s\n' 'Place zelda3_assets.dat beside the AppImage in a writable directory. Run chmod +x zelda3-x86_64.AppImage then launch it. Configuration and saves remain beside the AppImage.' > APPIMAGE-README.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zelda3-appimage-x86_64
+          path: |
+            zelda3-x86_64.AppImage
+            APPIMAGE-README.txt
+          if-no-files-found: error
