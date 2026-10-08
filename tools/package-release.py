@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 legluondunet
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 """Create platform ZIPs with relative paths and Unix executable permissions."""
 import pathlib
 import sys

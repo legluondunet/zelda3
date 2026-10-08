@@ -86,7 +86,9 @@ Additionally, the following commands are available:
 
 ## License
 
-This project is licensed under the MIT license. See 'LICENSE.txt' for details.
+This fork as a whole and new original files by **legluondunet** are licensed under **GNU GPL version 3 or later** (`GPL-3.0-or-later`). See [LICENSE.txt](LICENSE.txt) for scope and [COPYING](COPYING) for the full license.
+
+Existing upstream files retain their original licenses and authors, including **snesrev** and **elzo_d**. The original MIT and Opus notices are preserved verbatim in [LICENSE.upstream.txt](LICENSE.upstream.txt). Third-party components retain their own notices. Newly imported third-party files are not automatically relicensed.
 
 ## Public binaries and standalone ROM extractor
 

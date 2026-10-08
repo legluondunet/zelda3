@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 legluondunet
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 """Standalone resource tool: Python, Pillow and YAML are bundled by PyInstaller.
 No ROM or extracted Nintendo resources are included in the distribution.
 """
