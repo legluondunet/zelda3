@@ -87,3 +87,15 @@ Additionally, the following commands are available:
 ## License
 
 This project is licensed under the MIT license. See 'LICENSE.txt' for details.
+
+## Public binaries and standalone ROM extractor
+
+Successful builds of `master` publish Windows and Linux x86_64 ZIP packages in Releases, together with `SHA256SUMS`. Linux includes the SDL2-bundled AppImage; Windows includes runtime DLLs. Each package contains an `extractor/` directory with a standalone Python-based resource tool (Python, Pillow and PyYAML included). No ROM or Nintendo resources are bundled.
+
+To generate assets from your own US ROM, run:
+
+```sh
+./extractor/zelda3-extractor --workspace /absolute/path/to/resources --extract-from-rom --rom /absolute/path/to/zelda3.sfc
+```
+
+On Windows, use `extractor\zelda3-extractor.exe`. Copy the resulting `resources/zelda3_assets.dat` next to the game executable or AppImage. Z3-Launcher handles these steps automatically. Keep the extractor directory intact; its `_internal` directory contains required runtime files. The extractor version is built from the same commit as the game.
