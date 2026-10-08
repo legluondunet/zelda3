@@ -1,7 +1,7 @@
 def invert_dict(xs):
   return {s:i for i,s in xs.items()}
 
-type0_names="""Ceiling [L-R]
+type0_names=r"""Ceiling [L-R]
 [N]Wall Horz: [L-R]
 [S]Wall Horz: [L-R]
 [N]Wall Horz: (LOW) [L-R]
