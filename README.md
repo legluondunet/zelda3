@@ -4,6 +4,12 @@ A reimplementation of Zelda 3.
 
 Our discord server is: https://discord.gg/AJJbJAzNNJ
 
+## Fork version
+
+The fork version is **0.1.0**, defined in [VERSION](VERSION). Releases identify both the version and the source commit, for example `Zelda3 0.1.0 (abcdef0)` with tag `v0.1.0-abcdef0`. Each game package includes `VERSION` and `BUILD-INFO.txt`. Archive names remain stable for launcher compatibility.
+
+Increment `VERSION` for a new release: the last number for fixes, the middle number for new features, and the first number for major changes. This version refers to the legluondunet fork, not the upstream project or Z3-Launcher.
+
 ## About
 
 This is a reverse engineered clone of Zelda 3 - A Link to the Past.

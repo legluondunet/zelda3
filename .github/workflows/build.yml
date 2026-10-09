@@ -17,6 +17,16 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+      - name: Read fork version
+        shell: bash
+        run: |
+          version="$(tr -d '\r\n' < VERSION)"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid VERSION: $version" >&2
+            exit 1
+          fi
+          echo "PROJECT_VERSION=$version" >> "$GITHUB_ENV"
+          printf 'Version: %s\nCommit: %s\n' "$version" "$GITHUB_SHA" > BUILD-INFO.txt
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
       - uses: actions/setup-python@v5
@@ -37,7 +47,7 @@ jobs:
       - name: Package
         run: |
           mkdir -p dist
-          cp zelda3 zelda3.ini LICENSE.txt LICENSE.upstream.txt COPYING dist/
+          cp zelda3 zelda3.ini LICENSE.txt LICENSE.upstream.txt COPYING VERSION BUILD-INFO.txt dist/
           printf '%s\n' 'Place your zelda3_assets.dat in this directory. Run ./zelda3 here. SDL2 must be installed.' > dist/README.txt
           tar -czf zelda3-linux-x86_64.tar.gz -C dist .
       - uses: actions/upload-artifact@v4
@@ -53,6 +63,16 @@ jobs:
         shell: msys2 {0}
     steps:
       - uses: actions/checkout@v4
+      - name: Read fork version
+        shell: bash
+        run: |
+          version="$(tr -d '\r\n' < VERSION)"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid VERSION: $version" >&2
+            exit 1
+          fi
+          echo "PROJECT_VERSION=$version" >> "$GITHUB_ENV"
+          printf 'Version: %s\nCommit: %s\n' "$version" "$GITHUB_SHA" > BUILD-INFO.txt
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -76,7 +96,7 @@ jobs:
             src/*.c snes/*.c third_party/gl_core/gl_core_3_1.c \
             third_party/opus-1.3.1-stripped/opus_decoder_amalgam.c \
             -o dist/zelda3.exe -static-libgcc $(sdl2-config --libs) -lm
-          cp /mingw64/bin/SDL2.dll zelda3.ini LICENSE.txt LICENSE.upstream.txt COPYING dist/
+          cp /mingw64/bin/SDL2.dll zelda3.ini LICENSE.txt LICENSE.upstream.txt COPYING VERSION BUILD-INFO.txt dist/
           # Include any additional non-system DLL dependencies.
           ldd dist/zelda3.exe | awk '/=> \/mingw64\/bin\// {print $3}' | while read -r dll; do cp "$dll" dist/; done
           printf '%s\n' 'Place your zelda3_assets.dat in this directory before launching zelda3.exe.' > dist/README.txt
@@ -100,6 +120,16 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+      - name: Read fork version
+        shell: bash
+        run: |
+          version="$(tr -d '\r\n' < VERSION)"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid VERSION: $version" >&2
+            exit 1
+          fi
+          echo "PROJECT_VERSION=$version" >> "$GITHUB_ENV"
+          printf 'Version: %s\nCommit: %s\n' "$version" "$GITHUB_SHA" > BUILD-INFO.txt
       - uses: actions/download-artifact@v4
         with:
           name: zelda3-linux-x86_64
@@ -115,7 +145,7 @@ jobs:
           mkdir -p build/linux AppDir/usr/bin AppDir/usr/share/zelda3
           tar -xzf build/zelda3-linux-x86_64.tar.gz -C build/linux
           install -m755 build/linux/zelda3 AppDir/usr/bin/zelda3
-          cp zelda3.ini LICENSE.txt LICENSE.upstream.txt COPYING AppDir/usr/share/zelda3/
+          cp zelda3.ini LICENSE.txt LICENSE.upstream.txt COPYING VERSION BUILD-INFO.txt AppDir/usr/share/zelda3/
           cat > zelda3.desktop <<'DESKTOP'
           [Desktop Entry]
           Type=Application
@@ -165,7 +195,7 @@ jobs:
           chmod +x release-dist/extractor/zelda3-extractor
           cp zelda3-x86_64.AppImage release-dist/zelda3.AppImage
           chmod +x release-dist/zelda3.AppImage
-          cp zelda3.ini LICENSE.txt LICENSE.upstream.txt COPYING APPIMAGE-README.txt release-dist/
+          cp zelda3.ini LICENSE.txt LICENSE.upstream.txt COPYING VERSION BUILD-INFO.txt APPIMAGE-README.txt release-dist/
           python3 tools/package-release.py release-dist zelda3-linux-x86_64.zip
       - uses: actions/upload-artifact@v4
         with:
@@ -179,6 +209,17 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+      - name: Read fork version
+        shell: bash
+        run: |
+          version="$(tr -d '\r\n' < VERSION)"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid VERSION: $version" >&2
+            exit 1
+          fi
+          echo "PROJECT_VERSION=$version" >> "$GITHUB_ENV"
+          printf 'Version: %s\nCommit: %s\n' "$version" "$GITHUB_SHA" > BUILD-INFO.txt
       - uses: actions/download-artifact@v4
         with:
           pattern: release-*
@@ -192,9 +233,9 @@ jobs:
         run: |
           cd release
           sha256sum *.zip > SHA256SUMS
-          tag="build-${BUILD_SHA}"
+          tag="v${PROJECT_VERSION}-${BUILD_SHA:0:7}"
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" *.zip SHA256SUMS --clobber
           else
-            gh release create "$tag" *.zip SHA256SUMS --target "$BUILD_SHA" --title "Zelda3 ${BUILD_SHA:0:7}" --notes "Windows and Linux x86_64 binaries with standalone ROM resource extractor. GPL-3.0-or-later fork; upstream licenses and credits preserved. Corresponding project source and build scripts: https://github.com/${GH_REPO}/tree/${BUILD_SHA} (also available as the source archives on this release). No ROM or Nintendo assets included." --latest
+            gh release create "$tag" *.zip SHA256SUMS --target "$BUILD_SHA" --title "Zelda3 ${PROJECT_VERSION} (${BUILD_SHA:0:7})" --notes "Windows and Linux x86_64 binaries with standalone ROM resource extractor. GPL-3.0-or-later fork; upstream licenses and credits preserved. Corresponding project source and build scripts: https://github.com/${GH_REPO}/tree/${BUILD_SHA} (also available as the source archives on this release). No ROM or Nintendo assets included." --latest
           fi
