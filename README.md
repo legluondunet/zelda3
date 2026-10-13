@@ -1,57 +1,57 @@
-# Zelda3 — fork pour Z3-Launcher
+# Zelda3 — fork for Z3-Launcher
 
-Ce dépôt est un fork de [snesrev/zelda3](https://github.com/snesrev/zelda3), une réimplémentation en C de **The Legend of Zelda: A Link to the Past**.
+This repository is a fork of [snesrev/zelda3](https://github.com/snesrev/zelda3), a C reimplementation of **The Legend of Zelda: A Link to the Past**.
 
-**Ce fork a pour seul but de fournir les exécutables et les outils de ressources utilisés par [Z3-Launcher](https://github.com/legluondunet/Z3-Launcher).** Il permet au launcher de télécharger le jeu déjà compilé et de préparer ses ressources sans imposer une compilation à l'utilisateur.
+**The sole purpose of this fork is to provide the executables and resource tools used by [Z3-Launcher](https://github.com/legluondunet/Z3-Launcher).** It lets the launcher download prebuilt game binaries and prepare game resources without requiring users to compile the project.
 
-L'utilisation avec Z3-Launcher est recommandée. Le programme reste utilisable directement : un tutoriel est fourni ci-dessous.
+Using Z3-Launcher is recommended. The program can also be used directly; instructions are provided below.
 
-Aucune ROM ni ressource extraite du jeu n'est incluse dans les téléchargements. Pour jouer, vous devez fournir votre propre ROM américaine et en extraire les ressources.
+No ROM or extracted game resources are included in the downloads. To play, you must provide your own US ROM and extract its resources.
 
-## Différences avec le projet d'origine
+## Differences from the upstream project
 
-| Ajout ou modification dans ce fork | Objectif |
+| Addition or change in this fork | Purpose |
 |---|---|
-| Workflow GitHub Actions | Compiler automatiquement les exécutables Linux et Windows en x86_64 et fabriquer une AppImage Linux. |
-| Publication de paquets ZIP dans les Releases | Fournir des téléchargements directement utilisables par Z3-Launcher. |
-| Bibliothèques nécessaires incluses | Fournir les DLL Windows et embarquer SDL2 dans l'AppImage. |
-| Extracteur autonome dans `extractor/` | Générer les ressources sans installer séparément Python, Pillow ou PyYAML. |
-| Script `tools/extract-assets.py` | Préparer un répertoire de travail et appeler l'outil de ressources du projet d'origine ; proposer également une vérification de la langue de la ROM. |
-| Script `tools/package-release.py` | Créer des ZIP avec des chemins relatifs et conserver les permissions Unix des exécutables. |
-| Correction dans `assets/tables.py` | Éviter un avertissement Python lié aux séquences d'échappement. |
-| Version du fork et informations de compilation | Identifier chaque publication par sa version et son commit ; fournir `VERSION`, `BUILD-INFO.txt` et `SHA256SUMS`. |
-| Licence des nouveaux fichiers | Utiliser GPL-3.0-or-later pour les ajouts de legluondunet, en conservant les licences et crédits du code d'origine. |
+| GitHub Actions workflow | Automatically build Linux and Windows x86_64 executables and a Linux AppImage. |
+| ZIP packages published in Releases | Provide downloads that Z3-Launcher can use directly. |
+| Bundled runtime libraries | Include Windows DLLs and bundle SDL2 in the AppImage. |
+| Standalone extractor in `extractor/` | Generate resources without separately installing Python, Pillow or PyYAML. |
+| `tools/extract-assets.py` | Prepare a workspace and invoke the upstream resource tool; also provide an optional ROM language check. |
+| `tools/package-release.py` | Create ZIP archives with relative paths and preserve Unix executable permissions. |
+| Fix in `assets/tables.py` | Avoid a Python warning about escape sequences. |
+| Fork version and build information | Identify releases by version and commit; provide `VERSION`, `BUILD-INFO.txt` and `SHA256SUMS`. |
+| Licensing for new files | Apply GPL-3.0-or-later to legluondunet's additions while preserving upstream licenses and credits. |
 
-Le moteur de jeu et ses fonctionnalités — écran large, shaders, mode 7 amélioré, audio MSU-1 et options de gameplay — proviennent du projet d'origine. Ils ne sont pas présentés comme des ajouts de ce fork.
+The game engine and its features — widescreen, shaders, enhanced Mode 7, MSU-1 audio and gameplay options — come from the upstream project. They are not additions made by this fork.
 
-## Version et téléchargements
+## Version and downloads
 
-La version actuelle du fork est **0.1.0**, définie dans [VERSION](VERSION). Elle est indépendante de la version de Z3-Launcher.
+The current fork version is **0.1.0**, defined in [VERSION](VERSION). It is independent of the Z3-Launcher version.
 
-Les publications portent un nom comme `Zelda3 0.1.0 (abcdef0)` et un tag comme `v0.1.0-abcdef0`. Le commit identifie exactement les sources utilisées pour la compilation.
+Releases use names such as `Zelda3 0.1.0 (abcdef0)` and tags such as `v0.1.0-abcdef0`. The commit identifies the exact source used for the build.
 
-Téléchargements : [Releases](https://github.com/legluondunet/zelda3/releases).
+Downloads: [Releases](https://github.com/legluondunet/zelda3/releases).
 
-| Système | Paquet public |
+| Platform | Public package |
 |---|---|
-| Linux x86_64 | `zelda3-linux-x86_64.zip`, contenant `zelda3.AppImage` et l'extracteur autonome. |
-| Windows x86_64 | `zelda3-windows-x86_64.zip`, contenant `zelda3.exe`, les DLL et l'extracteur autonome. |
+| Linux x86_64 | `zelda3-linux-x86_64.zip`, containing `zelda3.AppImage` and the standalone extractor. |
+| Windows x86_64 | `zelda3-windows-x86_64.zip`, containing `zelda3.exe`, runtime DLLs and the standalone extractor. |
 
-Le workflow fournit aussi un exécutable Linux classique dans ses [artifacts GitHub Actions](https://github.com/legluondunet/zelda3/actions), sous le nom `zelda3-linux-x86_64`. Cette version nécessite SDL2 installé sur le système.
+The workflow also provides a regular Linux executable in its [GitHub Actions artifacts](https://github.com/legluondunet/zelda3/actions), under the name `zelda3-linux-x86_64`. This build requires SDL2 to be installed on the system.
 
-## Utilisation sans Z3-Launcher
+## Using the program without Z3-Launcher
 
-### 1. Télécharger et décompresser
+### 1. Download and extract
 
-Depuis les Releases, téléchargez le ZIP correspondant à votre système. Décompressez **tout son contenu** dans un répertoire où vous avez le droit d'écrire.
+Download the ZIP for your platform from Releases. Extract **all of its contents** into a directory where you have write permission.
 
-Conservez le dossier `extractor/` complet, notamment son sous-dossier `_internal/`. L'extracteur en dépend pour fonctionner.
+Keep the entire `extractor/` directory, including its `_internal/` subdirectory. The extractor needs these files to run.
 
-Préparez votre ROM américaine de **A Link to the Past**. Dans les exemples, elle se nomme `zelda3.sfc` ; adaptez son chemin à votre installation.
+Prepare your US ROM of **A Link to the Past**. The examples use the filename `zelda3.sfc`; adjust its path for your installation.
 
-### 2. Générer les ressources sous Linux
+### 2. Generate resources on Linux
 
-Ouvrez un terminal dans le répertoire décompressé et exécutez :
+Open a terminal in the extracted package directory and run:
 
 ```bash
 chmod +x ./extractor/zelda3-extractor ./zelda3.AppImage
@@ -59,83 +59,83 @@ chmod +x ./extractor/zelda3-extractor ./zelda3.AppImage
 ./extractor/zelda3-extractor \
   --workspace "$PWD/resources" \
   --extract-from-rom \
-  --rom "/chemin/vers/zelda3.sfc"
+  --rom "/path/to/zelda3.sfc"
 
 cp ./resources/zelda3_assets.dat ./zelda3_assets.dat
 ```
 
-Le chemin de la ROM doit être absolu : l'outil change de répertoire pendant l'extraction. Les guillemets permettent de gérer les espaces dans les chemins.
+Use an absolute ROM path: the tool changes directories during extraction. Keep paths quoted to handle spaces.
 
-Une fois `zelda3_assets.dat` créé et copié à côté de l'AppImage, lancez :
+Once `zelda3_assets.dat` has been generated and copied next to the AppImage, run:
 
 ```bash
 ./zelda3.AppImage
 ```
 
-Si votre système affiche une erreur liée à FUSE, essayez :
+If your system reports a FUSE error, try:
 
 ```bash
 ./zelda3.AppImage --appimage-extract-and-run
 ```
 
-Avec l'exécutable Linux classique téléchargé depuis les artifacts, placez également `zelda3_assets.dat` et `zelda3.ini` dans son répertoire, installez SDL2 avec le gestionnaire de paquets de votre distribution, puis lancez `./zelda3` depuis ce répertoire.
+For the regular Linux executable downloaded from Actions artifacts, also place `zelda3_assets.dat` and `zelda3.ini` in its directory, install SDL2 using your distribution's package manager, then run `./zelda3` from that directory.
 
-### 3. Générer les ressources sous Windows
+### 3. Generate resources on Windows
 
-Ouvrez **PowerShell** dans le répertoire décompressé et exécutez :
+Open **PowerShell** in the extracted package directory and run:
 
 ```powershell
-.\extractor\zelda3-extractor.exe --workspace "$PWD\resources" --extract-from-rom --rom "C:\chemin\vers\zelda3.sfc"
+.\extractor\zelda3-extractor.exe --workspace "$PWD\resources" --extract-from-rom --rom "C:\path\to\zelda3.sfc"
 
 Copy-Item .\resources\zelda3_assets.dat .\zelda3_assets.dat
 
 .\zelda3.exe
 ```
 
-Adaptez le chemin absolu de la ROM. Gardez les DLL fournies à côté de `zelda3.exe`.
+Adjust the absolute ROM path. Keep the supplied DLLs next to `zelda3.exe`.
 
-Après cette préparation, vous pouvez aussi lancer le jeu en double-cliquant sur `zelda3.exe`.
+After this setup, you can also start the game by double-clicking `zelda3.exe`.
 
-### 4. Configurer et jouer
+### 4. Configure and play
 
-Le fichier `zelda3.ini` permet de modifier les contrôles, le rendu, le plein écran, l'audio et les options de jeu. Fermez le jeu avant de modifier ce fichier.
+Use `zelda3.ini` to configure controls, rendering, fullscreen mode, audio and gameplay options. Close the game before editing this file.
 
-Les touches par défaut correspondent à un clavier QWERTY :
+The default keys are intended for a QWERTY keyboard:
 
-| Action | Touche |
+| Action | Key |
 |---|---|
-| Déplacements | Flèches |
-| Start | Entrée |
-| Select | Maj droite |
-| Boutons A / B / X / Y | X / Z / S / A |
-| Boutons L / R | C / V |
-| Plein écran | Alt + Entrée |
+| Movement | Arrow keys |
+| Start | Enter |
+| Select | Right Shift |
+| A / B / X / Y buttons | X / Z / S / A |
+| L / R buttons | C / V |
+| Fullscreen | Alt + Enter |
 | Pause | P |
-| Sauvegarder un état | Maj + F1 à F10 |
-| Charger un état | F1 à F10 |
+| Save a state | Shift + F1 through F10 |
+| Load a state | F1 through F10 |
 
-Pour un clavier AZERTY, utilisez la ligne `Controls` prévue à cet effet dans la section `[KeyMap]` de `zelda3.ini`, en désactivant l'autre ligne `Controls`.
+For an AZERTY keyboard, enable the corresponding `Controls` line in the `[KeyMap]` section of `zelda3.ini` and disable the other `Controls` line.
 
-Pour les shaders `.glsl` ou `.glslp`, définissez `OutputMethod = OpenGL` et renseignez leur chemin dans `Shader`, dans la section `[Graphics]`.
+For `.glsl` or `.glslp` shaders, set `OutputMethod = OpenGL` and enter the shader path in `Shader`, in the `[Graphics]` section.
 
-Le programme a besoin de `zelda3_assets.dat` à chaque lancement. La ROM n'est plus nécessaire pour jouer une fois les ressources générées. Les données de jeu et la configuration doivent rester dans un répertoire accessible en écriture ; avec l'AppImage, elles sont utilisées dans le répertoire de l'AppImage.
+The program needs `zelda3_assets.dat` every time it starts. The ROM is no longer needed to play once the resources have been generated. Keep game data and configuration in a writable directory; the AppImage uses the directory containing the AppImage.
 
-### En cas de problème
+### Troubleshooting
 
-- **Ressources introuvables** : vérifiez que `zelda3_assets.dat` se trouve à côté de l'exécutable ou de l'AppImage. Avec l'exécutable classique, lancez le jeu depuis ce répertoire.
-- **Extraction impossible** : vérifiez le chemin absolu de la ROM, sa compatibilité avec la version américaine attendue et la présence du dossier `extractor/_internal/`.
-- **Permission refusée sous Linux** : vérifiez les permissions d'exécution et les droits d'écriture du répertoire.
-- **DLL manquante sous Windows** : décompressez de nouveau le ZIP complet et conservez les DLL fournies avec le jeu.
+- **Missing resources**: check that `zelda3_assets.dat` is next to the executable or AppImage. When using the regular executable, launch the game from that directory.
+- **Extraction fails**: check the absolute ROM path, compatibility with the expected US ROM, and the presence of `extractor/_internal/`.
+- **Permission denied on Linux**: check executable permissions and write access to the directory.
+- **Missing DLL on Windows**: extract the complete ZIP again and keep the supplied DLLs with the game.
 
-## Sources et crédits
+## Source and credits
 
-Le travail de réimplémentation du jeu appartient au projet [snesrev/zelda3](https://github.com/snesrev/zelda3). Il utilise notamment les implémentations PPU et DSP de [LakeSnes](https://github.com/elzo-d/LakeSnes), ainsi que des travaux de documentation et de désassemblage cités par le projet d'origine.
+The game reimplementation comes from [snesrev/zelda3](https://github.com/snesrev/zelda3). It uses the PPU and DSP implementations from [LakeSnes](https://github.com/elzo-d/LakeSnes), alongside documentation and disassembly work credited by the upstream project.
 
-Les sources et les instructions de compilation restent disponibles dans ce dépôt, notamment dans [BUILDING.md](BUILDING.md). Les ajouts de ce fork concernent principalement la compilation automatique, la distribution et l'intégration avec Z3-Launcher.
+Source code and build instructions remain available in this repository, including [BUILDING.md](BUILDING.md). This fork's additions mainly concern automated builds, distribution and integration with Z3-Launcher.
 
-## Licences
+## Licenses
 
-- **Fork dans son ensemble et nouveaux fichiers originaux de legluondunet** : GNU GPL version 3 ou ultérieure, identifiant `GPL-3.0-or-later`. Copyright © 2026 legluondunet. Voir [LICENSE.txt](LICENSE.txt) pour le périmètre et [COPYING](COPYING) pour le texte complet.
-- **Fichiers hérités du projet d'origine** : leurs licences et auteurs sont conservés, y compris lorsqu'ils sont modifiés dans ce fork. La licence MIT et les mentions de **snesrev** et **elzo_d** sont préservées dans [LICENSE.upstream.txt](LICENSE.upstream.txt).
-- **Opus et autres composants tiers** : ils conservent leurs propres licences et mentions de copyright. Voir notamment [la licence d'Opus](third_party/opus-1.3.1-stripped/COPYING) et les notices présentes dans les fichiers de `third_party/`. Les bibliothèques embarquées dans les paquets restent régies par leurs licences respectives.
-- **ROM et ressources extraites du jeu** : elles ne sont pas couvertes par les licences du code de ce dépôt et ne sont pas distribuées avec les paquets.
+- **The fork as a whole and new original files by legluondunet**: GNU GPL version 3 or later, identifier `GPL-3.0-or-later`. Copyright © 2026 legluondunet. See [LICENSE.txt](LICENSE.txt) for scope and [COPYING](COPYING) for the complete license text.
+- **Files inherited from upstream**: their original licenses and authors are preserved, including when modified in this fork. The MIT license and credits for **snesrev** and **elzo_d** are preserved in [LICENSE.upstream.txt](LICENSE.upstream.txt).
+- **Opus and other third-party components**: these retain their own licenses and copyright notices. See the [Opus license](third_party/opus-1.3.1-stripped/COPYING) and notices in `third_party/`. Libraries bundled in the packages remain subject to their respective licenses.
+- **ROMs and extracted game resources**: these are not covered by this repository's software licenses and are not distributed with the packages.
